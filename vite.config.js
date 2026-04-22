@@ -11,8 +11,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: '打卡',
-        short_name: '打卡',
+        name: '做了么',
+        short_name: '做了么',
         description: '个人习惯打卡追踪',
         theme_color: '#6366f1',
         background_color: '#f9fafb',
