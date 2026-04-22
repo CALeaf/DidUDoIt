@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { parseImport, exportCSV, exportJSON, shareOrDownload } from '../utils'
 import { COLORS, getColor } from '../colors'
 
@@ -42,9 +42,10 @@ export default function SettingsView({ store }) {
   const [importMsg, setImportMsg]     = useState('')
   const [showDelConfirm, setShowDel]  = useState(false)
   const fileRef = useRef()
+  const endDateRef = useRef()
 
-  // sync name when switching habits
-  if (nameInput !== activeHabit.name && !nameSaved) setNameInput(activeHabit.name)
+  // sync name input only when switching to a different habit
+  useEffect(() => { setNameInput(activeHabit.name) }, [activeHabit.id])
 
   const saveName = () => {
     if (!nameInput.trim()) return
@@ -158,9 +159,13 @@ export default function SettingsView({ store }) {
             />
             <div className="flex gap-2">
               <input type="date" value={excForm.startDate}
-                onChange={e => setExcForm(f => ({ ...f, startDate: e.target.value }))}
+                onChange={e => {
+                  const val = e.target.value
+                  setExcForm(f => ({ ...f, startDate: val, endDate: f.endDate < val ? val : f.endDate }))
+                  setTimeout(() => endDateRef.current?.focus(), 80)
+                }}
                 className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
-              <input type="date" value={excForm.endDate} min={excForm.startDate}
+              <input ref={endDateRef} type="date" value={excForm.endDate} min={excForm.startDate}
                 onChange={e => setExcForm(f => ({ ...f, endDate: e.target.value }))}
                 className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
             </div>
