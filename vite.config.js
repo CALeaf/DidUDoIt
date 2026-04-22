@@ -11,9 +11,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: '做了么',
-        short_name: '做了么',
-        description: '个人习惯打卡追踪',
+        name: 'DidUDoIt',
+        short_name: 'DidUDoIt',
+        description: 'Personal habit tracker',
         theme_color: '#6366f1',
         background_color: '#f9fafb',
         display: 'standalone',

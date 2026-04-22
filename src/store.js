@@ -15,7 +15,7 @@ const initHabits = () => {
   const saved = load(HABITS_KEY, null)
   if (saved) return saved
   const id = crypto.randomUUID()
-  const name = localStorage.getItem('habitName_v1') || '我的打卡'
+  const name = localStorage.getItem('habitName_v1') || 'My Habit'
   const v1Checkins = load('checkins_v1', null)
   const v1Excludes = load('excludes_v1', null)
   if (v1Checkins) localStorage.setItem(checkinsKey(id), JSON.stringify(v1Checkins))

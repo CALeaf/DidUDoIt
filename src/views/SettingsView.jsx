@@ -66,8 +66,8 @@ export default function SettingsView({ store }) {
     if (!file) return
     const parsed = parseImport(await file.text())
     setImportMsg(parsed.length === 0
-      ? '未识别到有效记录，请检查格式'
-      : `成功导入 ${importCheckins(parsed)} 条新记录（共解析 ${parsed.length} 条）`)
+      ? 'No valid records found. Check the file format.'
+      : `Imported ${importCheckins(parsed)} new records (${parsed.length} parsed)`)
     e.target.value = ''
   }
 
@@ -89,30 +89,30 @@ export default function SettingsView({ store }) {
 
   return (
     <div className="px-5 pb-8">
-      <h2 className="text-xl font-bold text-gray-900 pt-5 mb-5">设置</h2>
+      <h2 className="text-xl font-bold text-gray-900 pt-5 mb-5">Settings</h2>
 
       {/* Name */}
-      <Section title="习惯名称">
+      <Section title="Habit Name">
         <div className="flex items-center px-4 py-3 gap-3">
           <input
             value={nameInput}
             onChange={e => setNameInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && saveName()}
             className="flex-1 text-gray-800 text-base outline-none bg-transparent"
-            placeholder="给你的习惯起个名字"
+            placeholder="Name your habit"
           />
           <button
             onClick={saveName}
             className="text-sm font-semibold px-3 py-1.5 rounded-xl transition-all"
             style={nameSaved ? { color: '#16a34a', background: '#f0fdf4' } : { color: color.hex, background: color.hex + '15' }}
           >
-            {nameSaved ? '已保存 ✓' : '保存'}
+            {nameSaved ? 'Saved ✓' : 'Save'}
           </button>
         </div>
       </Section>
 
       {/* Color */}
-      <Section title="颜色">
+      <Section title="Color">
         <div className="flex items-center gap-3 px-4 py-4">
           {COLORS.map(c => (
             <button
@@ -131,9 +131,9 @@ export default function SettingsView({ store }) {
       </Section>
 
       {/* Exclude periods */}
-      <Section title="豁免时间段">
+      <Section title="Skip Periods">
         {excludes.length === 0 && !showAddExc && (
-          <p className="px-4 py-3 text-sm text-gray-400">暂无豁免时间段</p>
+          <p className="px-4 py-3 text-sm text-gray-400">No skip periods added</p>
         )}
         {excludes.map(e => (
           <div key={e.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0">
@@ -154,7 +154,7 @@ export default function SettingsView({ store }) {
               autoFocus
               value={excForm.reason}
               onChange={e => setExcForm(f => ({ ...f, reason: e.target.value }))}
-              placeholder="原因（如：生理期、出差）"
+              placeholder="Reason (e.g. vacation, illness)"
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300"
             />
             <div className="flex gap-2">
@@ -171,10 +171,10 @@ export default function SettingsView({ store }) {
             </div>
             <div className="flex gap-2">
               <button onClick={submitExclude} className="flex-1 text-white rounded-xl py-2.5 text-sm font-semibold" style={{ background: color.hex }}>
-                确认
+                Confirm
               </button>
               <button onClick={() => setShowAddExc(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 text-sm active:bg-gray-200">
-                取消
+                Cancel
               </button>
             </div>
           </div>
@@ -185,25 +185,25 @@ export default function SettingsView({ store }) {
             className="w-full px-4 py-3 text-sm font-semibold text-left border-t border-gray-50 active:bg-gray-50"
             style={{ color: color.hex }}
           >
-            + 添加豁免时间段
+            + Add Skip Period
           </button>
         )}
       </Section>
 
       {/* Export */}
-      <Section title="导出数据">
+      <Section title="Export Data">
         <div className="divide-y divide-gray-50">
           <Row
             icon={<span className="text-[11px] font-bold text-green-600">CSV</span>}
-            title="导出为 CSV"
-            sub="可用 Excel / Numbers 打开"
+            title="Export as CSV"
+            sub="Open with Excel or Numbers"
             right={<ShareIcon />}
             onClick={() => handleExport('csv')}
           />
           <Row
             icon={<span className="text-[11px] font-bold text-blue-500">JSON</span>}
-            title="导出为 JSON"
-            sub="适合重新导入或开发者使用"
+            title="Export as JSON"
+            sub="For re-import or developer use"
             right={<ShareIcon />}
             onClick={() => handleExport('json')}
           />
@@ -211,11 +211,11 @@ export default function SettingsView({ store }) {
       </Section>
 
       {/* Import */}
-      <Section title="导入数据">
+      <Section title="Import Data">
         <div className="px-4 py-4">
           <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-            支持 CSV（每行 <code className="bg-gray-100 px-1 rounded">日期,时间</code> 或 ISO 时间戳）<br />
-            以及 JSON（<code className="bg-gray-100 px-1 rounded">[{'{'}timestamp{'}'}]</code>）
+            Supports CSV (one ISO timestamp per row or date,time)<br />
+            and JSON (<code className="bg-gray-100 px-1 rounded">[{'{'}timestamp{'}'}]</code>)
           </p>
           <button
             onClick={() => fileRef.current?.click()}
@@ -225,11 +225,11 @@ export default function SettingsView({ store }) {
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
-            选择文件导入
+            Choose File to Import
           </button>
           <input ref={fileRef} type="file" accept=".csv,.json,.txt" className="hidden" onChange={handleFile} />
           {importMsg && (
-            <p className={`mt-3 text-sm text-center font-medium ${importMsg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`mt-3 text-sm text-center font-medium ${importMsg.includes('Imported') ? 'text-green-600' : 'text-red-500'}`}>
               {importMsg}
             </p>
           )}
@@ -238,23 +238,23 @@ export default function SettingsView({ store }) {
 
       {/* Delete habit */}
       {habits.length > 1 && (
-        <Section title="危险操作">
+        <Section title="Danger Zone">
           {showDelConfirm ? (
             <div className="px-4 py-4 space-y-3">
               <p className="text-sm text-gray-600">
-                确认删除「{activeHabit.name}」？所有记录将<span className="text-red-500 font-semibold">永久删除</span>。
+                Delete "{activeHabit.name}"? All records will be <span className="text-red-500 font-semibold">permanently deleted</span>.
               </p>
               <div className="flex gap-2">
                 <button onClick={() => deleteHabit(activeHabit.id)} className="flex-1 bg-red-500 text-white rounded-xl py-2.5 text-sm font-semibold active:bg-red-600">
-                  确认删除
+                  Delete
                 </button>
                 <button onClick={() => setShowDel(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 text-sm active:bg-gray-200">
-                  取消
+                  Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <Row title={`删除「${activeHabit.name}」`} danger onClick={() => setShowDel(true)} />
+            <Row title={`Delete "${activeHabit.name}"`} danger onClick={() => setShowDel(true)} />
           )}
         </Section>
       )}

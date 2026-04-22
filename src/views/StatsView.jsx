@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
 import { calcStreak, calcAvgInterval, getLast30Days, getCheckinsByDate, isExcluded, toDateStr } from '../utils'
 import { getColor } from '../colors'
 
@@ -75,9 +74,9 @@ export default function StatsView({ store }) {
   const totalDays = Object.keys(byDate).length
 
   const avgLabel = avgInt === null ? '—'
-    : avgInt === 1 ? '每天'
-    : `每${avgInt}天`
-  const avgSub = avgInt !== null && avgInt > 1 ? '打卡 1 次' : avgInt === 1 ? '都打卡' : undefined
+    : avgInt === 1 ? 'Daily'
+    : `Every ${avgInt}d`
+  const avgSub = avgInt !== null && avgInt > 1 ? 'per check-in' : avgInt === 1 ? 'every day' : undefined
 
   const months = useMemo(() => {
     const result = []
@@ -88,36 +87,36 @@ export default function StatsView({ store }) {
       const excl = days.filter(day => isExcluded(toDateStr(day), excludes)).length
       const hit  = days.filter(day => byDate[toDateStr(day)] && !isExcluded(toDateStr(day), excludes)).length
       const elig = days.length - excl
-      result.push({ label: format(d, 'M月', { locale: zhCN }), fullLabel: format(d, 'yyyy年M月', { locale: zhCN }), hit, elig, excl })
+      result.push({ label: format(d, 'MMM'), fullLabel: format(d, 'MMM yyyy'), hit, elig, excl })
     }
     return result
   }, [byDate, excludes])
 
   return (
     <div className="px-5 pb-8">
-      <h2 className="text-xl font-bold text-gray-900 pt-5 mb-5">统计</h2>
+      <h2 className="text-xl font-bold text-gray-900 pt-5 mb-5">Stats</h2>
 
       {/* 2×2 stat grid */}
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <StatCard label="当前连续" value={streak.current} sub="天" hex={color.hex} icon={icons.streak} />
-        <StatCard label="最长连续" value={streak.longest} sub="天" hex={color.hex} icon={icons.trophy} />
-        <StatCard label="累计打卡" value={totalDays} sub={`共 ${checkins.length} 次`} hex={color.hex} icon={icons.calendar} />
-        <StatCard label="平均频率" value={avgLabel} sub={avgSub} hex={color.hex} icon={icons.freq} />
+        <StatCard label="Current Streak" value={streak.current} sub="days" hex={color.hex} icon={icons.streak} />
+        <StatCard label="Best Streak" value={streak.longest} sub="days" hex={color.hex} icon={icons.trophy} />
+        <StatCard label="Total Days" value={totalDays} sub={`${checkins.length} check-ins`} hex={color.hex} icon={icons.calendar} />
+        <StatCard label="Avg Frequency" value={avgLabel} sub={avgSub} hex={color.hex} icon={icons.freq} />
       </div>
 
       {/* Bar chart */}
       <div className="bg-white rounded-2xl p-4 mb-5" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-        <p className="text-sm font-semibold text-gray-700 mb-3">近 30 天</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">Last 30 Days</p>
         <BarChart data={last30} hex={color.hex} />
         <div className="flex justify-between mt-1">
           <span className="text-[11px] text-gray-400">{last30[0]?.date?.slice(5)}</span>
-          <span className="text-[11px] text-gray-400">今天</span>
+          <span className="text-[11px] text-gray-400">Today</span>
         </div>
       </div>
 
       {/* Monthly summary */}
       <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-        <p className="text-sm font-semibold text-gray-700 mb-4">月度总结</p>
+        <p className="text-sm font-semibold text-gray-700 mb-4">Monthly Summary</p>
         <div className="space-y-4">
           {months.map((m, i) => {
             const pct = m.elig > 0 ? m.hit / m.elig : 0
@@ -128,11 +127,11 @@ export default function StatsView({ store }) {
                     {m.fullLabel}
                   </span>
                   <div className="flex items-center gap-2">
-                    {m.excl > 0 && <span className="text-[11px] text-gray-300">豁免{m.excl}天</span>}
+                    {m.excl > 0 && <span className="text-[11px] text-gray-300">skip {m.excl}d</span>}
                     <span className="text-sm font-semibold" style={{ color: pct > 0 ? color.hex : '#9ca3af' }}>
                       {Math.round(pct * 100)}%
                     </span>
-                    <span className="text-xs text-gray-400">{m.hit}/{m.elig}天</span>
+                    <span className="text-xs text-gray-400">{m.hit}/{m.elig}d</span>
                   </div>
                 </div>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
