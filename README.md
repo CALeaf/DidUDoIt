@@ -1,4 +1,4 @@
-# 做了么 · 打卡
+# DidUDoIt · 打卡
 
 > 免费、开源、无广告的个人习惯打卡 app，数据存在本地，可安装到 iPhone 主屏幕。
 
@@ -13,7 +13,7 @@
 
 ## 在 iPhone 上安装
 
-1. 用 **Safari** 打开 → [https://caleaf.github.io/做了么](https://caleaf.github.io/做了么)
+1. 用 **Safari** 打开 → [https://caleaf.github.io/DidUDoIt](https://caleaf.github.io/DidUDoIt)
 2. 点底部分享按钮 **「□↑」**
 3. 选 **「添加到主屏幕」**
 4. 完成，像普通 app 一样使用，数据保存在本地
@@ -23,8 +23,8 @@
 ## 本地开发
 
 ```bash
-git clone https://github.com/CALeaf/做了么.git
-cd 做了么
+git clone https://github.com/CALeaf/DidUDoIt.git
+cd DidUDoIt
 npm install
 npm run dev
 ```
