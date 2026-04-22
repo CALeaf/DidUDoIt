@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const base = process.env.NODE_ENV === 'production' ? '/了么/' : '/'
+const base = process.env.NODE_ENV === 'production' ? '/做了么/' : '/'
 
 export default defineConfig({
   base,
