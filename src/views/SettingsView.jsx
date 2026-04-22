@@ -1,0 +1,258 @@
+import { useState, useRef } from 'react'
+import { parseImport, exportCSV, exportJSON, shareOrDownload } from '../utils'
+import { COLORS, getColor } from '../colors'
+
+function Section({ title, children }) {
+  return (
+    <div className="mb-5">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2 px-1">{title}</p>
+      <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function Row({ icon, title, sub, right, onClick, danger }) {
+  const content = (
+    <div className={`flex items-center gap-3 px-4 py-3.5 ${onClick ? 'active:bg-gray-50' : ''} ${danger ? 'active:bg-red-50' : ''}`}>
+      {icon && (
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-gray-100">
+          {icon}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-medium ${danger ? 'text-red-500' : 'text-gray-800'}`}>{title}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+      {right}
+    </div>
+  )
+  return onClick ? <button className="w-full text-left" onClick={onClick}>{content}</button> : <div>{content}</div>
+}
+
+export default function SettingsView({ store }) {
+  const { activeHabit, updateHabit, deleteHabit, habits, excludes, addExclude, deleteExclude, importCheckins, checkins } = store
+  const color = getColor(activeHabit.color)
+
+  const [nameInput, setNameInput]     = useState(activeHabit.name)
+  const [nameSaved, setNameSaved]     = useState(false)
+  const [showAddExc, setShowAddExc]   = useState(false)
+  const [excForm, setExcForm]         = useState({ startDate: '', endDate: '', reason: '' })
+  const [importMsg, setImportMsg]     = useState('')
+  const [showDelConfirm, setShowDel]  = useState(false)
+  const fileRef = useRef()
+
+  // sync name when switching habits
+  if (nameInput !== activeHabit.name && !nameSaved) setNameInput(activeHabit.name)
+
+  const saveName = () => {
+    if (!nameInput.trim()) return
+    updateHabit(activeHabit.id, { name: nameInput.trim() })
+    setNameSaved(true)
+    setTimeout(() => setNameSaved(false), 1500)
+  }
+
+  const submitExclude = () => {
+    if (!excForm.startDate || !excForm.endDate || !excForm.reason.trim() || excForm.startDate > excForm.endDate) return
+    addExclude(excForm.startDate, excForm.endDate, excForm.reason.trim())
+    setExcForm({ startDate: '', endDate: '', reason: '' })
+    setShowAddExc(false)
+  }
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const parsed = parseImport(await file.text())
+    setImportMsg(parsed.length === 0
+      ? '未识别到有效记录，请检查格式'
+      : `成功导入 ${importCheckins(parsed)} 条新记录（共解析 ${parsed.length} 条）`)
+    e.target.value = ''
+  }
+
+  const handleExport = async (fmt) => {
+    const name = activeHabit.name
+    const date = new Date().toISOString().slice(0, 10)
+    if (fmt === 'csv') {
+      await shareOrDownload(exportCSV(checkins), `${name}_${date}.csv`, 'text/csv')
+    } else {
+      await shareOrDownload(exportJSON(checkins, name), `${name}_${date}.json`, 'application/json')
+    }
+  }
+
+  const ShareIcon = () => (
+    <svg viewBox="0 0 24 24" className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+    </svg>
+  )
+
+  return (
+    <div className="px-5 pb-8">
+      <h2 className="text-xl font-bold text-gray-900 pt-5 mb-5">设置</h2>
+
+      {/* Name */}
+      <Section title="习惯名称">
+        <div className="flex items-center px-4 py-3 gap-3">
+          <input
+            value={nameInput}
+            onChange={e => setNameInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && saveName()}
+            className="flex-1 text-gray-800 text-base outline-none bg-transparent"
+            placeholder="给你的习惯起个名字"
+          />
+          <button
+            onClick={saveName}
+            className="text-sm font-semibold px-3 py-1.5 rounded-xl transition-all"
+            style={nameSaved ? { color: '#16a34a', background: '#f0fdf4' } : { color: color.hex, background: color.hex + '15' }}
+          >
+            {nameSaved ? '已保存 ✓' : '保存'}
+          </button>
+        </div>
+      </Section>
+
+      {/* Color */}
+      <Section title="颜色">
+        <div className="flex items-center gap-3 px-4 py-4">
+          {COLORS.map(c => (
+            <button
+              key={c.id}
+              onClick={() => updateHabit(activeHabit.id, { color: c.id })}
+              className="w-9 h-9 rounded-full transition-all duration-150"
+              style={{
+                background: c.hex,
+                transform: activeHabit.color === c.id ? 'scale(1.15)' : 'scale(1)',
+                boxShadow: activeHabit.color === c.id ? `0 0 0 3px white, 0 0 0 5px ${c.hex}` : 'none',
+                opacity: activeHabit.color === c.id ? 1 : 0.65
+              }}
+            />
+          ))}
+        </div>
+      </Section>
+
+      {/* Exclude periods */}
+      <Section title="豁免时间段">
+        {excludes.length === 0 && !showAddExc && (
+          <p className="px-4 py-3 text-sm text-gray-400">暂无豁免时间段</p>
+        )}
+        {excludes.map(e => (
+          <div key={e.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800 truncate">{e.reason}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{e.startDate} — {e.endDate}</p>
+            </div>
+            <button onClick={() => deleteExclude(e.id)} className="text-gray-300 active:text-red-400 p-1 shrink-0">
+              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        ))}
+        {showAddExc && (
+          <div className="px-4 py-3 border-t border-gray-50 space-y-3">
+            <input
+              autoFocus
+              value={excForm.reason}
+              onChange={e => setExcForm(f => ({ ...f, reason: e.target.value }))}
+              placeholder="原因（如：生理期、出差）"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300"
+            />
+            <div className="flex gap-2">
+              <input type="date" value={excForm.startDate}
+                onChange={e => setExcForm(f => ({ ...f, startDate: e.target.value }))}
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
+              <input type="date" value={excForm.endDate} min={excForm.startDate}
+                onChange={e => setExcForm(f => ({ ...f, endDate: e.target.value }))}
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={submitExclude} className="flex-1 text-white rounded-xl py-2.5 text-sm font-semibold" style={{ background: color.hex }}>
+                确认
+              </button>
+              <button onClick={() => setShowAddExc(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 text-sm active:bg-gray-200">
+                取消
+              </button>
+            </div>
+          </div>
+        )}
+        {!showAddExc && (
+          <button
+            onClick={() => setShowAddExc(true)}
+            className="w-full px-4 py-3 text-sm font-semibold text-left border-t border-gray-50 active:bg-gray-50"
+            style={{ color: color.hex }}
+          >
+            + 添加豁免时间段
+          </button>
+        )}
+      </Section>
+
+      {/* Export */}
+      <Section title="导出数据">
+        <div className="divide-y divide-gray-50">
+          <Row
+            icon={<span className="text-[11px] font-bold text-green-600">CSV</span>}
+            title="导出为 CSV"
+            sub="可用 Excel / Numbers 打开"
+            right={<ShareIcon />}
+            onClick={() => handleExport('csv')}
+          />
+          <Row
+            icon={<span className="text-[11px] font-bold text-blue-500">JSON</span>}
+            title="导出为 JSON"
+            sub="适合重新导入或开发者使用"
+            right={<ShareIcon />}
+            onClick={() => handleExport('json')}
+          />
+        </div>
+      </Section>
+
+      {/* Import */}
+      <Section title="导入数据">
+        <div className="px-4 py-4">
+          <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+            支持 CSV（每行 <code className="bg-gray-100 px-1 rounded">日期,时间</code> 或 ISO 时间戳）<br />
+            以及 JSON（<code className="bg-gray-100 px-1 rounded">[{'{'}timestamp{'}'}]</code>）
+          </p>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-4 text-sm font-semibold active:opacity-70 transition-opacity"
+            style={{ borderColor: color.hex + '50', color: color.hex }}
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            选择文件导入
+          </button>
+          <input ref={fileRef} type="file" accept=".csv,.json,.txt" className="hidden" onChange={handleFile} />
+          {importMsg && (
+            <p className={`mt-3 text-sm text-center font-medium ${importMsg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>
+              {importMsg}
+            </p>
+          )}
+        </div>
+      </Section>
+
+      {/* Delete habit */}
+      {habits.length > 1 && (
+        <Section title="危险操作">
+          {showDelConfirm ? (
+            <div className="px-4 py-4 space-y-3">
+              <p className="text-sm text-gray-600">
+                确认删除「{activeHabit.name}」？所有记录将<span className="text-red-500 font-semibold">永久删除</span>。
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => deleteHabit(activeHabit.id)} className="flex-1 bg-red-500 text-white rounded-xl py-2.5 text-sm font-semibold active:bg-red-600">
+                  确认删除
+                </button>
+                <button onClick={() => setShowDel(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 text-sm active:bg-gray-200">
+                  取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Row title={`删除「${activeHabit.name}」`} danger onClick={() => setShowDel(true)} />
+          )}
+        </Section>
+      )}
+    </div>
+  )
+}
