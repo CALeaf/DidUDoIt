@@ -96,6 +96,10 @@ export function useStore() {
     persist(excludesKey(activeId), excludes.filter(e => e.id !== id), setExcludes)
   }
 
+  const markBackup = () => {
+    localStorage.setItem(`lastBackup_${activeId}`, new Date().toISOString().slice(0, 10))
+  }
+
   const importCheckins = (incoming) => {
     const existing = new Set(checkins.map(c => c.timestamp))
     const toAdd = incoming
@@ -110,6 +114,6 @@ export function useStore() {
     habits, activeHabit, activeId,
     setActiveHabit, addHabit, updateHabit, deleteHabit,
     checkins, excludes,
-    addCheckin, deleteCheckin, addExclude, deleteExclude, importCheckins
+    addCheckin, deleteCheckin, addExclude, deleteExclude, importCheckins, markBackup
   }
 }

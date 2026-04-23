@@ -33,7 +33,7 @@ function Row({ icon, title, sub, right, onClick, danger }) {
 }
 
 export default function SettingsView({ store }) {
-  const { activeHabit, updateHabit, deleteHabit, habits, excludes, addExclude, deleteExclude, importCheckins, checkins } = store
+  const { activeHabit, updateHabit, deleteHabit, habits, excludes, addExclude, deleteExclude, importCheckins, checkins, markBackup } = store
   const color = getColor(activeHabit.color)
 
   const [nameInput, setNameInput]     = useState(activeHabit.name)
@@ -94,6 +94,7 @@ export default function SettingsView({ store }) {
     } else {
       await shareOrDownload(exportJSON(checkins, name), `${name}_${date}.json`, 'application/json')
     }
+    markBackup()
   }
 
   const ShareIcon = () => (
