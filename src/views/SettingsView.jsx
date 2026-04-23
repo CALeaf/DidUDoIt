@@ -40,6 +40,7 @@ export default function SettingsView({ store }) {
   const [showAddExc, setShowAddExc]   = useState(false)
   const [excForm, setExcForm]         = useState({ startDate: '', endDate: '', reason: '' })
   const [importMsg, setImportMsg]     = useState('')
+  const [tracklistHabits, setTracklistHabits] = useState(null)
   const [showDelConfirm, setShowDel]  = useState(false)
   const fileRef = useRef()
   const endDateRef = useRef()
@@ -65,10 +66,22 @@ export default function SettingsView({ store }) {
     const file = e.target.files?.[0]
     if (!file) return
     const parsed = parseImport(await file.text())
+    if (parsed?._type === 'tracklist') {
+      setTracklistHabits(parsed.habits)
+      setImportMsg('')
+      e.target.value = ''
+      return
+    }
     setImportMsg(parsed.length === 0
       ? 'No valid records found. Check the file format.'
       : `Imported ${importCheckins(parsed)} new records (${parsed.length} parsed)`)
     e.target.value = ''
+  }
+
+  const handleTracklistPick = (records) => {
+    const count = importCheckins(records)
+    setImportMsg(`Imported ${count} new records`)
+    setTracklistHabits(null)
   }
 
   const handleExport = async (fmt) => {
@@ -217,17 +230,35 @@ export default function SettingsView({ store }) {
             Supports CSV (one ISO timestamp per row or date,time)<br />
             and JSON (<code className="bg-gray-100 px-1 rounded">[{'{'}timestamp{'}'}]</code>)
           </p>
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-4 text-sm font-semibold active:opacity-70 transition-opacity"
-            style={{ borderColor: color.hex + '50', color: color.hex }}
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-            </svg>
-            Choose File to Import
-          </button>
-          <input ref={fileRef} type="file" accept=".csv,.json,.txt" className="hidden" onChange={handleFile} />
+          {tracklistHabits ? (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500 font-medium">Which habit to import?</p>
+              {tracklistHabits.map((h, i) => (
+                <button key={i} onClick={() => handleTracklistPick(h.records)}
+                  className="w-full flex items-center justify-between rounded-xl px-3 py-2.5 active:opacity-70 transition-opacity"
+                  style={{ background: color.hex + '12', color: color.hex }}>
+                  <span className="text-sm font-semibold">{h.title}</span>
+                  <span className="text-xs opacity-70">{h.count} records</span>
+                </button>
+              ))}
+              <button onClick={() => setTracklistHabits(null)}
+                className="w-full text-xs text-gray-400 py-1 active:text-gray-600">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="w-full flex items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-4 text-sm font-semibold active:opacity-70 transition-opacity"
+              style={{ borderColor: color.hex + '50', color: color.hex }}
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Choose File to Import
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept=".csv,.json,.txt,.data" className="hidden" onChange={handleFile} />
           {importMsg && (
             <p className={`mt-3 text-sm text-center font-medium ${importMsg.includes('Imported') ? 'text-green-600' : 'text-red-500'}`}>
               {importMsg}

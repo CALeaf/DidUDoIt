@@ -149,12 +149,28 @@ export function getLast30Days(checkins) {
   })
 }
 
+// Apple CoreData reference date offset (seconds from 2001-01-01 to Unix epoch)
+const APPLE_EPOCH_OFFSET = 978307200
+
 export function parseImport(text) {
   const trimmed = text.trim()
   // Try JSON
   if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
     try {
       const data = JSON.parse(trimmed)
+      // Tracklist app format: array of habits with records[].recordTime (Apple epoch)
+      if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0]?.records) && data[0]?.recordTime === undefined) {
+        return {
+          _type: 'tracklist',
+          habits: data.map(h => ({
+            title: h.title || '(no name)',
+            count: h.records.length,
+            records: h.records.map(r => ({
+              timestamp: new Date((r.recordTime + APPLE_EPOCH_OFFSET) * 1000).toISOString()
+            }))
+          }))
+        }
+      }
       const arr = Array.isArray(data) ? data : [data]
       return arr.map(item => {
         const ts = item.timestamp || item.time || item.datetime || item.date
