@@ -45,6 +45,7 @@ export default function SettingsView({ store }) {
   const fileRef = useRef()
   const endDateRef = useRef()
 
+
   // sync name input only when switching to a different habit
   useEffect(() => { setNameInput(activeHabit.name) }, [activeHabit.id])
 
@@ -175,7 +176,6 @@ export default function SettingsView({ store }) {
                 onChange={e => {
                   const val = e.target.value
                   setExcForm(f => ({ ...f, startDate: val, endDate: f.endDate < val ? val : f.endDate }))
-                  setTimeout(() => endDateRef.current?.focus(), 80)
                 }}
                 className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
               <input ref={endDateRef} type="date" value={excForm.endDate} min={excForm.startDate}
