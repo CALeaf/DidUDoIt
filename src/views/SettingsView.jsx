@@ -39,6 +39,7 @@ export default function SettingsView({ store }) {
   const [nameInput, setNameInput]     = useState(activeHabit.name)
   const [nameSaved, setNameSaved]     = useState(false)
   const [showAddExc, setShowAddExc]   = useState(false)
+  const [showAllExc, setShowAllExc]   = useState(false)
   const [excForm, setExcForm]         = useState({ startDate: '', endDate: '', reason: '' })
   const [importMsg, setImportMsg]     = useState('')
   const [tracklistHabits, setTracklistHabits] = useState(null)
@@ -57,7 +58,7 @@ export default function SettingsView({ store }) {
   }
 
   const submitExclude = () => {
-    if (!excForm.startDate || !excForm.endDate || !excForm.reason.trim() || excForm.startDate > excForm.endDate) return
+    if (!excForm.startDate || !excForm.endDate || excForm.startDate > excForm.endDate) return
     addExclude(excForm.startDate, excForm.endDate, excForm.reason.trim())
     setExcForm({ startDate: '', endDate: '', reason: '' })
     setShowAddExc(false)
@@ -149,10 +150,13 @@ export default function SettingsView({ store }) {
         {excludes.length === 0 && !showAddExc && (
           <p className="px-4 py-3 text-sm text-gray-400">No skip periods added</p>
         )}
-        {excludes.map(e => (
+        {(showAllExc ? excludes : excludes.slice(0, 3)).map(e => (
           <div key={e.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800 truncate">{e.reason}</p>
+              {e.reason
+                ? <p className="text-sm font-medium text-gray-800 truncate">{e.reason}</p>
+                : <p className="text-sm text-gray-400 italic">No reason</p>
+              }
               <p className="text-xs text-gray-400 mt-0.5">{e.startDate} — {e.endDate}</p>
             </div>
             <button onClick={() => deleteExclude(e.id)} className="text-gray-300 active:text-red-400 p-1 shrink-0">
@@ -186,6 +190,12 @@ export default function SettingsView({ store }) {
               </button>
             </div>
           </div>
+        )}
+        {excludes.length > 3 && !showAddExc && (
+          <button onClick={() => setShowAllExc(v => !v)}
+            className="w-full px-4 py-2 text-xs text-gray-400 text-center border-t border-gray-50 active:bg-gray-50">
+            {showAllExc ? 'Show less ▲' : `Show ${excludes.length - 3} more ▼`}
+          </button>
         )}
         {!showAddExc && (
           <button
