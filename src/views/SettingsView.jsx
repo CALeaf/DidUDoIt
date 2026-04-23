@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { parseImport, exportCSV, exportJSON, shareOrDownload } from '../utils'
 import { COLORS, getColor } from '../colors'
+import DateRangePicker from '../components/DateRangePicker'
 
 function Section({ title, children }) {
   return (
@@ -43,7 +44,6 @@ export default function SettingsView({ store }) {
   const [tracklistHabits, setTracklistHabits] = useState(null)
   const [showDelConfirm, setShowDel]  = useState(false)
   const fileRef = useRef()
-  const endDateRef = useRef()
 
 
   // sync name input only when switching to a different habit
@@ -171,17 +171,12 @@ export default function SettingsView({ store }) {
               placeholder="Reason (e.g. vacation, illness)"
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300"
             />
-            <div className="flex gap-2">
-              <input type="date" value={excForm.startDate}
-                onChange={e => {
-                  const val = e.target.value
-                  setExcForm(f => ({ ...f, startDate: val, endDate: f.endDate < val ? val : f.endDate }))
-                }}
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
-              <input ref={endDateRef} type="date" value={excForm.endDate} min={excForm.startDate}
-                onChange={e => setExcForm(f => ({ ...f, endDate: e.target.value }))}
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
-            </div>
+            <DateRangePicker
+              startDate={excForm.startDate}
+              endDate={excForm.endDate}
+              onChange={({ startDate, endDate }) => setExcForm(f => ({ ...f, startDate, endDate }))}
+              hex={color.hex}
+            />
             <div className="flex gap-2">
               <button onClick={submitExclude} className="flex-1 text-white rounded-xl py-2.5 text-sm font-semibold" style={{ background: color.hex }}>
                 Confirm
